@@ -8,12 +8,15 @@ import * as argon from 'argon2';
 import { CreateUserDto, SigninUserDto } from './dtos';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwt: JwtService,
+    private jwtService: JwtService,
     private config: ConfigService,
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   async createUser({ email, password, firstName, lastName }: CreateUserDto) {
@@ -53,11 +56,14 @@ export class AuthService {
     if (!matchedPW) throw new UnauthorizedException('Incorrect Password');
 
     delete user.password;
-    const token = await this.signToken(user.id, user.email);
-    return { user, token };
+
+    const accessToken = await this.generateAccessToken(user.id, user.email);
+    const refreshToken = await this.generateRefreshToken(user.id);
+
+    return { user, accessToken, refreshToken };
   }
 
-  async signToken(userId: string, email: string): Promise<string> {
+  async generateAccessToken(userId: string, email: string): Promise<string> {
     const payload = {
       sub: userId,
       email,
@@ -65,9 +71,40 @@ export class AuthService {
 
     const secret = this.config.get('JWT_SECRET');
 
-    return this.jwt.signAsync(payload, {
+    const options = {
       expiresIn: '15m',
       secret,
-    });
+    };
+
+    return this.jwtService.signAsync(payload, options);
+  }
+
+  async generateRefreshToken(userId: string) {
+    const refreshToken = await this.refreshTokenService.create(userId);
+
+    return refreshToken;
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const decoded = this.jwtService.verify(refreshToken);
+      const { sub, email } = decoded;
+
+      const accessToken = await this.generateAccessToken(sub, email);
+      const newRefreshToken = await this.generateRefreshToken(sub);
+
+      const isRefreshTokenValid =
+        await this.refreshTokenService.isRefreshTokenValid(sub, refreshToken);
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 }

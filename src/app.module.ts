@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { RefreshTokenModule } from './refresh-token/refresh-token.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
       ttl: 60,
       limit: 10,
     }),
+    RefreshTokenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -10,7 +10,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get('JWT_SECRET'),
+      secretOrKeyProvider: (
+        request: any,
+        rawJwtToken: string,
+        done: (arg0: any, arg1: any) => void,
+      ) => {
+        const isAccessToken = !rawJwtToken.includes('refresh_token');
+        const jwtSecret = config.get(
+          isAccessToken ? 'JWT_SECRET' : 'JWT_REFRESH_SECRET',
+        );
+        done(null, jwtSecret);
+      },
     });
   }
 
@@ -20,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: payload.sub,
       },
     });
+
     delete user.password;
     return user;
   }
