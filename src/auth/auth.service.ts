@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon from 'argon2';
-import { CreateUserDto, SigninUserDto } from './dtos';
+import { CreateUserDto, RefreshTokenDto, SigninUserDto } from './dtos';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
@@ -85,13 +85,12 @@ export class AuthService {
     return refreshToken;
   }
 
-  async refreshTokens(refreshToken: string) {
+  async refreshTokens({ refreshToken }: RefreshTokenDto) {
     try {
-      const decoded = this.jwtService.verify(refreshToken);
+      const decoded = this.jwtService.verify(refreshToken, {
+        secret: this.config.get('JWT_REFRESH_SECRET'),
+      });
       const { sub, email } = decoded;
-
-      const accessToken = await this.generateAccessToken(sub, email);
-      const newRefreshToken = await this.generateRefreshToken(sub);
 
       const isRefreshTokenValid =
         await this.refreshTokenService.isRefreshTokenValid(sub, refreshToken);
@@ -99,9 +98,12 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
+      const accessToken = await this.generateAccessToken(sub, email);
+      // const newRefreshToken = await this.generateRefreshToken(sub);
+
       return {
         accessToken,
-        refreshToken: newRefreshToken,
+        // refreshToken: newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');

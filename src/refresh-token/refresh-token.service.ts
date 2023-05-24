@@ -12,7 +12,12 @@ export class RefreshTokenService {
   ) {}
 
   async create(userId: string) {
-    const refreshToken = await this.generateRefreshToken(userId);
+    const { id, email } = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    const refreshToken = await this.generateRefreshToken(id, email);
 
     function addDaysToDate(days: number): Date {
       const currentDate = new Date();
@@ -53,8 +58,8 @@ export class RefreshTokenService {
     return expiresAt > currentTime;
   }
 
-  async generateRefreshToken(id: string): Promise<string> {
-    const payload = { sub: id };
+  async generateRefreshToken(id: string, email: string): Promise<string> {
+    const payload = { sub: id, email };
 
     const secret = this.config.get('JWT_REFRESH_SECRET');
 
