@@ -6,19 +6,19 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { RefreshTokenModule } from './refresh-token/refresh-token.module';
+import { CacheModule } from './common/cache/cache.module';
 
 @Module({
   imports: [
     AuthModule,
-    PrismaModule,
+    CacheModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
     UserModule,
     ThrottlerModule.forRoot({
       ttl: 60,
       limit: 10,
     }),
-    RefreshTokenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

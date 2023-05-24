@@ -15,15 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         rawJwtToken: string,
         done: (arg0: any, arg1: any) => void,
       ) => {
-        console.log(
-          '🚀 ~ file: jwt.strategy.ts:18 ~ JwtStrategy ~ constructor ~ rawJwtToken:',
-          rawJwtToken,
-        );
-        const isAccessToken = !rawJwtToken.includes('refresh_token');
-
-        const jwtSecret = config.get(
-          isAccessToken ? 'JWT_SECRET' : 'JWT_REFRESH_SECRET',
-        );
+        const jwtSecret = config.get('JWT_SECRET');
 
         done(null, jwtSecret);
       },

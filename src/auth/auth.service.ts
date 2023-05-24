@@ -8,7 +8,7 @@ import * as argon from 'argon2';
 import { CreateUserDto, RefreshTokenDto, SigninUserDto } from './dtos';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RefreshTokenService } from 'src/refresh-token/refresh-token.service';
+import { RefreshTokenService } from 'src/auth/refresh-token.service';
 
 @Injectable()
 export class AuthService {
