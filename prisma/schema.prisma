@@ -16,6 +16,7 @@ model User {
   lastName     String?
   email        String         @unique
   password     String
+  googleAuth   Boolean        @default(false)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   urls         Url[]
