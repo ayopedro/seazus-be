@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from './common/cache/cache.module';
+import { UrlModule } from './url/url.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CacheModule } from './common/cache/cache.module';
       ttl: 60,
       limit: 10,
     }),
+    UrlModule,
   ],
   controllers: [AppController],
   providers: [AppService],
