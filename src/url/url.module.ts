@@ -4,10 +4,9 @@ import { UrlService } from './url.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CacheService } from 'src/common/cache/cache.service';
-import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [JwtModule.register({}), CacheModule.register({})],
+  imports: [JwtModule.register({})],
   controllers: [UrlController],
   providers: [UrlService, PrismaService, CacheService],
 })

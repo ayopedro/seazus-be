@@ -8,6 +8,7 @@ import {
   Post,
   Request,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -20,8 +21,11 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GoogleGuard, JwtGuard } from './guard';
 import { GetUser } from './decorator';
 import { User } from '@prisma/client';
+import { CacheInterceptor } from '@nestjs/cache-manager';
+import { ConfirmEmailDto } from './dtos/confirm-email.dto';
 
 @ApiTags('Authentication')
+@UseInterceptors(CacheInterceptor)
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -29,6 +33,11 @@ export class AuthController {
   @Post('register')
   register(@Body() body: CreateUserDto) {
     return this.authService.createUser(body);
+  }
+
+  @Post('verify-email')
+  confirm(@Body() token: ConfirmEmailDto) {
+    return this.authService.confirmEmail('', token);
   }
 
   @HttpCode(HttpStatus.OK)

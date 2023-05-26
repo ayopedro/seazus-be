@@ -10,6 +10,7 @@ import { UrlModule } from './url/url.module';
 import { PrismaService } from './prisma/prisma.service';
 import { UrlService } from './url/url.service';
 import { MailerModule } from './common/mailer/mailer.module';
+import { TokenModule } from './common/token/token.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MailerModule } from './common/mailer/mailer.module';
     }),
     UrlModule,
     UserModule,
+    TokenModule,
   ],
   controllers: [AppController],
   providers: [PrismaService, UrlService],

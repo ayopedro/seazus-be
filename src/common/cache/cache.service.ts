@@ -11,7 +11,7 @@ export class CacheService {
   }
 
   async set(key: string, value: any, ttl?: number): Promise<any> {
-    return this.cache.set(key, value, ttl ? ttl : 3600);
+    return await this.cache.set(key, value, ttl ? ttl : 3600);
   }
 
   async remove(key: string): Promise<any | any[]> {

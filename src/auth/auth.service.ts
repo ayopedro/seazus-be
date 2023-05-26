@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -17,6 +18,9 @@ import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from 'src/auth/refresh-token.service';
 import { User } from '@prisma/client';
 import { MailerService } from 'src/common/mailer/mailer.service';
+import { TokenService } from 'src/common/token/token.service';
+import { TokenType } from 'src/common/token/enums';
+import { ConfirmEmailDto } from './dtos/confirm-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +30,7 @@ export class AuthService {
     private config: ConfigService,
     private refreshTokenService: RefreshTokenService,
     private mailerService: MailerService,
+    private tokenService: TokenService,
   ) {}
 
   async createUser({ email, password, firstName, lastName }: CreateUserDto) {
@@ -41,9 +46,14 @@ export class AuthService {
       });
       delete user.password;
 
-      const token = Math.floor(Math.random() * 900000) + 1000;
+      const token = await this.tokenService.createToken(
+        TokenType.EMAIL_VERIFICATION,
+        user.email,
+        10 * 60 * 1000,
+      );
 
       await this.mailerService.sendConfirmEmailMessage(user, token);
+
       return user;
     } catch (error) {
       if (error.code === 'P2002') {
@@ -52,6 +62,23 @@ export class AuthService {
 
       throw error;
     }
+  }
+
+  async confirmEmail(email: string, { token }: ConfirmEmailDto) {
+    const verify = await this.tokenService.verifyToken(
+      TokenType.EMAIL_VERIFICATION,
+      token,
+      email,
+    );
+
+    if (!verify)
+      throw new BadRequestException(
+        'Unable to verify your email address at this time',
+      );
+
+    // await this.prisma.user.update({where})
+
+    return { message: 'Email verification successful!' };
   }
 
   async findOrCreate(dto: GoogleAuthDto) {

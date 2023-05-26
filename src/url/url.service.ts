@@ -19,12 +19,6 @@ export class UrlService {
 
   async createUrl({ longUrl, customDomain }: CreateUrlDto, user: User) {
     try {
-      const cacheKey = 'createurl';
-
-      const cachedResult = await this.cacheService.get(cacheKey);
-
-      if (cachedResult) return cachedResult;
-
       const existingLongUrl = await this.prisma.url.findFirst({
         where: { longUrl },
       });
@@ -53,7 +47,6 @@ export class UrlService {
         },
       });
 
-      await this.cacheService.set(cacheKey, result);
       return result;
     } catch (error) {
       throw error;
@@ -61,12 +54,19 @@ export class UrlService {
   }
 
   async getLongUrl(shortUrl: string, req: Request): Promise<string> {
+    const cacheKey = 'createurl';
+
+    const cachedResult = await this.cacheService.get(cacheKey);
+
+    if (cachedResult) return cachedResult;
+
     const url = await this.prisma.url.findUnique({ where: { shortUrl } });
 
     if (!url) {
       throw new NotFoundException('Short URL not found');
     }
     await this.updateClicks(url, req);
+    await this.cacheService.set(cacheKey, url.longUrl);
     return url.longUrl;
   }
 
