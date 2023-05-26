@@ -4,14 +4,22 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto, RefreshTokenDto, SigninUserDto } from './dtos';
-import { ApiTags } from '@nestjs/swagger';
-import { GoogleGuard } from './guard';
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  RefreshTokenDto,
+  SigninUserDto,
+} from './dtos';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GoogleGuard, JwtGuard } from './guard';
+import { GetUser } from './decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -27,6 +35,14 @@ export class AuthController {
   @Post('login')
   login(@Body() body: SigninUserDto) {
     return this.authService.signinUser(body);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('change-password')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  changePassword(@Body() body: ChangePasswordDto, @GetUser() user: User) {
+    return this.authService.changePassword(body, user);
   }
 
   @Get('social-auth')

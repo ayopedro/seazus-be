@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon from 'argon2';
 import {
+  ChangePasswordDto,
   CreateUserDto,
   GoogleAuthDto,
   RefreshTokenDto,
@@ -14,6 +15,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from 'src/auth/refresh-token.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -98,14 +100,33 @@ export class AuthService {
       return 'No google account found!';
     }
 
-    console.log(req.user.user);
-
     const user = await this.findOrCreate(req.user.user);
 
     const accessToken = await this.generateAccessToken(user.id, user.email);
     const refreshToken = await this.generateRefreshToken(user.id);
 
     return { user, accessToken, refreshToken };
+  }
+
+  async changePassword(
+    { currentPassword, newPassword }: ChangePasswordDto,
+    { email }: User,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    const matchedPW = await argon.verify(user.password, currentPassword);
+
+    if (!matchedPW) throw new ForbiddenException('Incorrect Password');
+
+    const hash = await argon.hash(newPassword);
+
+    await this.prisma.user.update({
+      where: { email },
+      data: { password: hash },
+    });
+
+    delete user.password;
+    return { message: 'Password changed successfully!', user };
   }
 
   async generateAccessToken(userId: string, email: string): Promise<string> {
