@@ -9,19 +9,21 @@ import { CacheModule } from './common/cache/cache.module';
 import { UrlModule } from './url/url.module';
 import { PrismaService } from './prisma/prisma.service';
 import { UrlService } from './url/url.service';
+import { MailerModule } from './common/mailer/mailer.module';
 
 @Module({
   imports: [
     AuthModule,
     CacheModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    MailerModule,
     PrismaModule,
-    UserModule,
     ThrottlerModule.forRoot({
       ttl: 60,
       limit: 10,
     }),
     UrlModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [PrismaService, UrlService],

@@ -16,6 +16,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from 'src/auth/refresh-token.service';
 import { User } from '@prisma/client';
+import { MailerService } from 'src/common/mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private refreshTokenService: RefreshTokenService,
+    private mailerService: MailerService,
   ) {}
 
   async createUser({ email, password, firstName, lastName }: CreateUserDto) {
@@ -39,6 +41,9 @@ export class AuthService {
       });
       delete user.password;
 
+      const token = Math.floor(Math.random() * 900000) + 1000;
+
+      await this.mailerService.sendConfirmEmailMessage(user, token);
       return user;
     } catch (error) {
       if (error.code === 'P2002') {
@@ -113,6 +118,11 @@ export class AuthService {
     { email }: User,
   ) {
     const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (user.googleAuth)
+      throw new ForbiddenException(
+        'Cannot change password because you are a google authenticated user',
+      );
 
     const matchedPW = await argon.verify(user.password, currentPassword);
 
