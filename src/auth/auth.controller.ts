@@ -4,8 +4,10 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
   UseInterceptors,
@@ -14,7 +16,9 @@ import { AuthService } from './auth.service';
 import {
   ChangePasswordDto,
   CreateUserDto,
+  ForgotPasswordDto,
   RefreshTokenDto,
+  ResetDto,
   SigninUserDto,
 } from './dtos';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -35,9 +39,9 @@ export class AuthController {
     return this.authService.createUser(body);
   }
 
-  @Post('verify-email')
-  confirm(@Body() token: ConfirmEmailDto) {
-    return this.authService.confirmEmail('', token);
+  @Post('verify-email/:id')
+  confirm(@Body() token: ConfirmEmailDto, @Param('id') id: string) {
+    return this.authService.confirmEmail(id, token);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -52,6 +56,19 @@ export class AuthController {
   @ApiBearerAuth()
   changePassword(@Body() body: ChangePasswordDto, @GetUser() user: User) {
     return this.authService.changePassword(body, user);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Patch('reset-password')
+  resetPassword(
+    @Query('userId') userId: string,
+    @Body() { token, newPassword }: ResetDto,
+  ) {
+    return this.authService.resetPassword(userId, token, newPassword);
   }
 
   @Get('social-auth')

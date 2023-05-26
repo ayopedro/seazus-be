@@ -64,11 +64,16 @@ export class AuthService {
     }
   }
 
-  async confirmEmail(email: string, { token }: ConfirmEmailDto) {
+  async confirmEmail(id: string, { token }: ConfirmEmailDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user)
+      throw new BadRequestException('Unable to verify your email address.');
+
     const verify = await this.tokenService.verifyToken(
       TokenType.EMAIL_VERIFICATION,
       token,
-      email,
+      user.email,
     );
 
     if (!verify)
@@ -76,7 +81,7 @@ export class AuthService {
         'Unable to verify your email address at this time',
       );
 
-    // await this.prisma.user.update({where})
+    await this.prisma.user.update({ where: { id }, data: { verified: true } });
 
     return { message: 'Email verification successful!' };
   }
@@ -164,6 +169,42 @@ export class AuthService {
 
     delete user.password;
     return { message: 'Password changed successfully!', user };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) throw new BadRequestException('Email is invalid');
+
+    const token = await this.tokenService.createToken(
+      TokenType.PASSWORD_RESET,
+      user.email,
+      10 * 60 * 1000,
+    );
+
+    return await this.mailerService.sendResetEmail(user, token);
+  }
+
+  async resetPassword(userId: string, token: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
+
+    await this.tokenService.verifyToken(
+      TokenType.PASSWORD_RESET,
+      token,
+      user.email,
+    );
+
+    const hash = await argon.hash(newPassword);
+
+    await this.prisma.user.update({
+      where: { email: user.email },
+      data: { password: hash },
+    });
+
+    await this.mailerService.sendResetSuccessfulEmail(user);
+    return { Message: 'Password reset successfully!' };
   }
 
   async generateAccessToken(userId: string, email: string): Promise<string> {

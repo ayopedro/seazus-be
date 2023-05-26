@@ -23,4 +23,31 @@ export class MailerService {
     });
     return { message: 'Confimation email sent!' };
   }
+
+  async sendResetEmail({ firstName, email }: User, token: number) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Password Reset',
+      //   html: '<h1>Hello World</h1>',
+      template: 'resetPassword',
+      context: {
+        firstName,
+        token,
+      },
+    });
+    return { message: 'Password reset email sent!' };
+  }
+
+  async sendResetSuccessfulEmail({ firstName, email }: User) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Password Reset Successful',
+      //   html: '<h1>Hello World</h1>',
+      template: 'passwordResetSuccess',
+      context: {
+        firstName,
+      },
+    });
+    return { message: 'Password reset email sent!' };
+  }
 }
