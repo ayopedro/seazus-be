@@ -1,9 +1,14 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUrlDto } from './dtos';
-import { User } from '@prisma/client';
+import { ClickDto, CreateUrlDto } from './dtos';
+import { Url, User } from '@prisma/client';
 import { ShortCodeUtility } from 'src/common/utilities';
 import { CacheService } from 'src/common/cache/cache.service';
+import { Request } from 'express';
 
 @Injectable()
 export class UrlService {
@@ -53,5 +58,34 @@ export class UrlService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getLongUrl(shortUrl: string, req: Request): Promise<string> {
+    const url = await this.prisma.url.findUnique({ where: { shortUrl } });
+
+    if (!url) {
+      throw new NotFoundException('Short URL not found');
+    }
+    await this.updateClicks(url, req);
+    return url.longUrl;
+  }
+
+  async updateClicks({ shortUrl, id }: Url, req: Request): Promise<void> {
+    const clickDto: ClickDto = {
+      timestamp: new Date(),
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    };
+    await this.prisma.click.create({
+      data: { ...clickDto, urlId: id },
+    });
+    await this.prisma.url.update({
+      where: { shortUrl },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+      },
+    });
   }
 }

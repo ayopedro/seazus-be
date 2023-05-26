@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
@@ -8,6 +7,8 @@ import { UserModule } from './user/user.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from './common/cache/cache.module';
 import { UrlModule } from './url/url.module';
+import { PrismaService } from './prisma/prisma.service';
+import { UrlService } from './url/url.service';
 
 @Module({
   imports: [
@@ -23,6 +24,6 @@ import { UrlModule } from './url/url.module';
     UrlModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [PrismaService, UrlService],
 })
 export class AppModule {}

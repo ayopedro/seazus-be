@@ -6,6 +6,9 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   getAllUrls(id: string) {
-    return this.prisma.url.findMany({ where: { userId: id } });
+    return this.prisma.url.findMany({
+      where: { userId: id },
+      include: { clickData: true },
+    });
   }
 }
