@@ -15,7 +15,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
-  @Get()
+  @Get('profile')
   getUser(@GetUser() user: User) {
     return user;
   }
