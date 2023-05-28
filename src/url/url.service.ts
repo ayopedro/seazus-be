@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ClickDto, CreateUrlDto } from './dtos';
+import { ClickDto, CreateUrlDto, EditUrlDto } from './dtos';
 import { Url, User } from '@prisma/client';
 import { ShortCodeUtility } from 'src/common/utilities';
 import { CacheService } from 'src/common/cache/cache.service';
@@ -17,7 +17,7 @@ export class UrlService {
     private cacheService: CacheService,
   ) {}
 
-  async createUrl({ longUrl, customDomain }: CreateUrlDto, user: User) {
+  async createUrl({ longUrl, customDomain, title }: CreateUrlDto, user: User) {
     try {
       const existingLongUrl = await this.prisma.url.findFirst({
         where: { longUrl },
@@ -44,12 +44,13 @@ export class UrlService {
           customDomain,
           shortUrl,
           userId: user.id,
+          title,
         },
       });
 
       return result;
     } catch (error) {
-      throw error;
+      return { message: error.message };
     }
   }
 
@@ -63,10 +64,12 @@ export class UrlService {
     const url = await this.prisma.url.findUnique({ where: { shortUrl } });
 
     if (!url) {
-      throw new NotFoundException('Short URL not found');
+      throw new NotFoundException('Invalid URL!');
     }
+
     await this.updateClicks(url, req);
     await this.cacheService.set(cacheKey, url.longUrl);
+
     return url.longUrl;
   }
 
@@ -79,6 +82,7 @@ export class UrlService {
     await this.prisma.click.create({
       data: { ...clickDto, urlId: id },
     });
+
     await this.prisma.url.update({
       where: { shortUrl },
       data: {
@@ -87,5 +91,41 @@ export class UrlService {
         },
       },
     });
+  }
+
+  async editUrl(id: string, { title, longUrl }: EditUrlDto) {
+    try {
+      const url = await this.prisma.url.findUnique({ where: { id } });
+
+      if (!url) throw new ForbiddenException('Url not found!');
+
+      await this.prisma.url.update({
+        where: { id },
+        data: { title, longUrl },
+      });
+
+      await this.cacheService.reset();
+      return { message: 'Updated successfully' };
+    } catch (error) {
+      return { message: error.message };
+    }
+  }
+
+  async deleteUrl(id: string) {
+    try {
+      const url = await this.prisma.url.findUnique({ where: { id } });
+
+      if (!url)
+        throw new ForbiddenException('Unable to delete url. Url not found!');
+
+      await this.prisma.click.deleteMany({ where: { urlId: id } });
+
+      await this.prisma.url.delete({ where: { id } });
+
+      await this.cacheService.reset();
+      return { message: 'Url deleted successfully' };
+    } catch (error) {
+      throw new ForbiddenException(error.message);
+    }
   }
 }
