@@ -16,6 +16,7 @@ import { CreateUrlDto, EditUrlDto } from './dtos';
 import { GetUser } from 'src/auth/decorator';
 import { User } from '@prisma/client';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { QrCodeService } from './qrcode.service';
 
 @ApiTags('URL')
 @UseGuards(JwtGuard)
@@ -24,11 +25,19 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 @UseInterceptors(CacheInterceptor)
 @Controller('url')
 export class UrlController {
-  constructor(private urlService: UrlService) {}
+  constructor(
+    private urlService: UrlService,
+    private qrcodeService: QrCodeService,
+  ) {}
 
   @Post()
   createUrl(@Body() body: CreateUrlDto, @GetUser() user: User) {
     return this.urlService.createUrl(body, user);
+  }
+
+  @Post(':id/qrcode')
+  createQrCode(@Param('id') id: string) {
+    return this.qrcodeService.generateQrCode(id);
   }
 
   @Patch(':id')
@@ -39,5 +48,10 @@ export class UrlController {
   @Delete(':id')
   deleteUrl(@Param('id') id: string) {
     return this.urlService.deleteUrl(id);
+  }
+
+  @Delete(':id/qrcode')
+  deleteQrcode(@Param('id') id: string) {
+    return this.qrcodeService.deleteQrCode(id);
   }
 }

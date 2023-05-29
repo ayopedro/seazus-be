@@ -5,10 +5,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  getAllUrls(id: string) {
-    return this.prisma.url.findMany({
+  async getAllUrls(id: string) {
+    const urls = await this.prisma.url.findMany({
       where: { userId: id },
-      include: { clickData: true },
+      include: { clickData: true, QrCode: true },
     });
+
+    return urls;
   }
 }

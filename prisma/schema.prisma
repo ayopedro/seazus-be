@@ -39,6 +39,7 @@ model Url {
   userId    String
   user      User    @relation(fields: [userId], references: [id])
   clickData Click[]
+  QrCode    QrCode?
 
   @@map("urls")
 }
@@ -65,4 +66,11 @@ model Click {
   url       Url      @relation(fields: [urlId], references: [id])
 
   @@map("clicks")
+}
+
+model QrCode {
+  id    String @id @default(uuid())
+  urlId String @unique
+  url   Url    @relation(fields: [urlId], references: [id])
+  image Bytes
 }

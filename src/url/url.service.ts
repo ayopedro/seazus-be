@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClickDto, CreateUrlDto, EditUrlDto } from './dtos';
 import { Url, User } from '@prisma/client';
@@ -64,7 +60,7 @@ export class UrlService {
     const url = await this.prisma.url.findUnique({ where: { shortUrl } });
 
     if (!url) {
-      throw new NotFoundException('Invalid URL!');
+      throw new ForbiddenException('Invalid URL!');
     }
 
     await this.updateClicks(url, req);
@@ -121,6 +117,8 @@ export class UrlService {
       await this.prisma.click.deleteMany({ where: { urlId: id } });
 
       await this.prisma.url.delete({ where: { id } });
+
+      await this.prisma.qrCode.delete({ where: { id } });
 
       await this.cacheService.reset();
       return { message: 'Url deleted successfully' };
