@@ -11,6 +11,19 @@ export class UserService {
       include: { clickData: true, QrCode: true },
     });
 
-    return urls;
+    const modifiedUrls = urls.map((url) => {
+      const qrCode = url.QrCode;
+
+      if (!qrCode || !qrCode.image || !qrCode.image) return url;
+
+      const imageBuffer = Buffer.from(qrCode.image);
+      const imageUrl = `data:image/png;base64,${imageBuffer.toString(
+        'base64',
+      )}`;
+
+      return { ...url, QrCode: { ...qrCode, image: imageUrl } };
+    });
+
+    return modifiedUrls;
   }
 }
