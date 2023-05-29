@@ -6,10 +6,14 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { QRCodeToFileOptionsPng, toBuffer } from 'qrcode';
 import * as sharp from 'sharp';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class QrCodeService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private configService: ConfigService,
+  ) {}
 
   async generateQrCode(urlId: string): Promise<Buffer> {
     const url = await this.prismaService.url.findFirst({
@@ -25,7 +29,10 @@ export class QrCodeService {
       margin: 1,
     };
 
-    const qrcodeBuffer = await toBuffer(url.longUrl, qrCodeOptions);
+    const qrcodeBuffer = await toBuffer(
+      `${this.configService.get('BASE_URL')}/${url.shortUrl}`,
+      qrCodeOptions,
+    );
 
     const processedImage = await sharp(qrcodeBuffer)
       .resize(200, 200)
