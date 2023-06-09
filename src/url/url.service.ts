@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClickDto, CreateUrlDto, EditUrlDto } from './dtos';
 import { User } from '@prisma/client';
@@ -59,7 +64,9 @@ export class UrlService {
       return cachedResult;
     }
 
-    const url = await this.prisma.url.findUnique({ where: { shortUrl } });
+    const url = await this.prisma.url.findFirst({
+      where: { shortUrl, status: true },
+    });
 
     if (!url) {
       throw new ForbiddenException('Invalid URL!');
@@ -126,6 +133,18 @@ export class UrlService {
     } catch (error) {
       return { message: error.message };
     }
+  }
+
+  async updateUrlStatus(id: string, query: 'true' | 'false') {
+    try {
+      const url = await this.prisma.url.findUnique({ where: { id } });
+      if (!url) throw new NotFoundException('URL not found');
+
+      await this.prisma.url.update({
+        where: { id },
+        data: { status: query === 'true' ? true : false },
+      });
+    } catch (error) {}
   }
 
   async deleteUrl(id: string) {

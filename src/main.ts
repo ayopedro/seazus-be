@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import * as useragent from 'express-useragent';
 import * as requestIp from 'request-ip';
 
@@ -12,6 +12,10 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: ':shortUrl', method: RequestMethod.GET }],
+  });
 
   app.use(useragent.express());
   app.use(requestIp.mw());

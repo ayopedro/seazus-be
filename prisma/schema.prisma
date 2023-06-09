@@ -35,11 +35,11 @@ model Url {
   clicks       Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
-  clickData Click[]
-  QrCode    QrCode?
+  status       Boolean  @default(true)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  clickData    Click[]
+  QrCode       QrCode?
 
   @@map("urls")
 }

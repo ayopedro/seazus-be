@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -38,6 +39,14 @@ export class UrlController {
   @Post(':id/qrcode')
   createQrCode(@Param('id') id: string) {
     return this.qrcodeService.generateQrCode(id);
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Query('status') status: 'true' | 'false',
+  ) {
+    return this.urlService.updateUrlStatus(id, status);
   }
 
   @Patch(':id')
