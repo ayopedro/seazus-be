@@ -11,8 +11,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { UrlService } from './url/url.service';
 import { MailerModule } from './common/mailer/mailer.module';
 import { TokenModule } from './common/token/token.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+// import { ServeStaticModule } from '@nestjs/serve-static';
+// import { join } from 'path';
 
 @Module({
   imports: [
@@ -21,10 +21,10 @@ import { join } from 'path';
     ConfigModule.forRoot({ isGlobal: true }),
     MailerModule,
     PrismaModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api/(.*)'],
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', 'public'),
+    //   exclude: ['/api/(.*)'],
+    // }),
     ThrottlerModule.forRoot({
       ttl: 60,
       limit: 10,
