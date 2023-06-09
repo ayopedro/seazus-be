@@ -58,7 +58,9 @@ model RefreshToken {
 model Click {
   id        String   @id @default(uuid())
   urlId     String
-  userAgent String?
+  device    String?
+  os        String?
+  browser   String?
   ipAddress String?
   timestamp DateTime
   createdAt DateTime @default(now())

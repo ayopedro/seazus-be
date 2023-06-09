@@ -7,10 +7,6 @@ export class AccessGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const userInfo = request.user;
-    console.log(
-      '🚀 ~ file: access.guard.ts:10 ~ AccessGuard ~ userInfo:',
-      userInfo,
-    );
 
     return userInfo;
   }

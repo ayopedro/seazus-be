@@ -14,7 +14,7 @@ export class UserService {
     const modifiedUrls = urls.map((url) => {
       const qrCode = url.QrCode;
 
-      if (!qrCode || !qrCode.image || !qrCode.image) return url;
+      if (!qrCode || !qrCode.image) return url;
 
       const imageBuffer = Buffer.from(qrCode.image);
       const imageUrl = `data:image/png;base64,${imageBuffer.toString(

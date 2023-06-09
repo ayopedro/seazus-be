@@ -13,6 +13,8 @@ export class AppController {
   @Get(':shortUrl')
   @Redirect('', 301)
   async getLongUrl(@Param('shortUrl') shortUrl: string, @Req() req: Request) {
+    await this.urlService.updateClickCount(shortUrl);
+
     const longUrl = await this.urlService.getLongUrl(shortUrl, req);
 
     return { url: longUrl };

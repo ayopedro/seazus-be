@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClickDto, CreateUrlDto, EditUrlDto } from './dtos';
-import { Url, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { ShortCodeUtility } from 'src/common/utilities';
 import { CacheService } from 'src/common/cache/cache.service';
 import { Request } from 'express';
@@ -51,11 +51,13 @@ export class UrlService {
   }
 
   async getLongUrl(shortUrl: string, req: Request): Promise<string> {
-    const cacheKey = 'createurl';
+    const cacheKey = 'longurl';
 
     const cachedResult = await this.cacheService.get(cacheKey);
 
-    if (cachedResult) return cachedResult;
+    if (cachedResult) {
+      return cachedResult;
+    }
 
     const url = await this.prisma.url.findUnique({ where: { shortUrl } });
 
@@ -63,24 +65,22 @@ export class UrlService {
       throw new ForbiddenException('Invalid URL!');
     }
 
-    await this.updateClicks(url, req);
+    await this.updateClickCount(shortUrl);
+    await this.saveDeviceInfo(url.id, req);
     await this.cacheService.set(cacheKey, url.longUrl);
 
     return url.longUrl;
   }
 
-  async updateClicks({ shortUrl, id }: Url, req: Request): Promise<void> {
-    const clickDto: ClickDto = {
-      timestamp: new Date(),
-      userAgent: req.headers['user-agent'],
-      ipAddress: req.ip,
-    };
-    await this.prisma.click.create({
-      data: { ...clickDto, urlId: id },
-    });
+  async updateClickCount(shortUrl: string): Promise<void> {
+    const url = await this.prisma.url.findUnique({ where: { shortUrl } });
+
+    if (!url) {
+      throw new ForbiddenException('Invalid URL!');
+    }
 
     await this.prisma.url.update({
-      where: { shortUrl },
+      where: { id: url.id },
       data: {
         clicks: {
           increment: 1,
@@ -89,11 +89,32 @@ export class UrlService {
     });
   }
 
+  async saveDeviceInfo(urlId: string, req: Request): Promise<void> {
+    const { platform, browser, os, version } = req.useragent;
+    const timestamp = new Date();
+    const userOS = `${os} ${version}`;
+
+    const clickDto: ClickDto = {
+      timestamp,
+      device: platform,
+      os: userOS,
+      browser,
+      ipAddress: req.clientIp,
+    };
+
+    await this.prisma.click.create({
+      data: {
+        urlId,
+        ...clickDto,
+      },
+    });
+  }
+
   async editUrl(id: string, { title, longUrl }: EditUrlDto) {
     try {
       const url = await this.prisma.url.findUnique({ where: { id } });
 
-      if (!url) throw new ForbiddenException('Url not found!');
+      if (!url) throw new ForbiddenException('URL not found!');
 
       await this.prisma.url.update({
         where: { id },
@@ -112,7 +133,7 @@ export class UrlService {
       const url = await this.prisma.url.findUnique({ where: { id } });
 
       if (!url)
-        throw new ForbiddenException('Unable to delete url. Url not found!');
+        throw new ForbiddenException('Unable to delete url. URL not found!');
 
       await this.prisma.click.deleteMany({ where: { urlId: id } });
 
