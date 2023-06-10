@@ -23,10 +23,11 @@ import {
 } from './dtos';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GoogleGuard, JwtGuard } from './guard';
-import { GetUser } from './decorator';
+import { ApiResponseMetadata, GetUser } from './decorator';
 import { User } from '@prisma/client';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ConfirmEmailDto } from './dtos/confirm-email.dto';
+import { TokenType } from 'src/common/token/enums';
 
 @ApiTags('Authentication')
 @UseInterceptors(CacheInterceptor)
@@ -39,9 +40,17 @@ export class AuthController {
     return this.authService.createUser(body);
   }
 
+  @HttpCode(HttpStatus.OK)
   @Post('verify-email/:id')
   confirm(@Body() token: ConfirmEmailDto, @Param('id') id: string) {
     return this.authService.confirmEmail(id, token);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiResponseMetadata({ message: 'OTP sent successfully!!!' })
+  @Post('new-otp/:id')
+  resendToken(@Param('id') id: string) {
+    return this.authService.newToken(id, TokenType.EMAIL_VERIFICATION);
   }
 
   @HttpCode(HttpStatus.OK)

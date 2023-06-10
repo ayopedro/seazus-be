@@ -27,21 +27,31 @@ model User {
 }
 
 model Url {
-  id           String   @id @default(uuid())
+  id           String        @id @default(uuid())
   longUrl      String
-  shortUrl     String   @unique
+  shortUrl     String        @unique
   title        String?
-  customDomain String?
-  clicks       Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  status       Boolean  @default(true)
+  customDomain CustomDomain?
+  clicks       Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  status       Boolean       @default(true)
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
   clickData    Click[]
   QrCode       QrCode?
 
   @@map("urls")
+}
+
+model CustomDomain {
+  id        String   @id @default(uuid())
+  domain    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  url   Url    @relation(fields: [urlId], references: [id])
+  urlId String @unique
 }
 
 model RefreshToken {

@@ -13,9 +13,12 @@ export class AppController {
   @Get(':shortUrl')
   @Redirect('', 301)
   async getLongUrl(@Param('shortUrl') shortUrl: string, @Req() req: Request) {
-    await this.urlService.updateClickCount(shortUrl);
-
-    const longUrl = await this.urlService.getLongUrl(shortUrl, req);
+    const { hostname } = req;
+    const longUrl = await this.urlService.getLongUrl(
+      shortUrl,
+      req,
+      hostname !== 'seazus.onrender.com' && hostname,
+    );
 
     return { url: longUrl };
   }

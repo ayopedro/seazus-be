@@ -1,12 +1,11 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClickDto, CreateUrlDto, EditUrlDto } from './dtos';
-import { User } from '@prisma/client';
+import { Url, User } from '@prisma/client';
 import { ShortCodeUtility } from 'src/common/utilities';
 import { CacheService } from 'src/common/cache/cache.service';
 import { Request } from 'express';
@@ -42,12 +41,23 @@ export class UrlService {
       const result = await this.prisma.url.create({
         data: {
           longUrl,
-          customDomain,
           shortUrl,
           userId: user.id,
           title,
         },
       });
+
+      if (customDomain) {
+        const existingDomain = await this.prisma.customDomain.findFirst({
+          where: { domain: customDomain },
+        });
+
+        if (!existingDomain) {
+          await this.prisma.customDomain.create({
+            data: { domain: customDomain, url: { connect: { id: result.id } } },
+          });
+        }
+      }
 
       return result;
     } catch (error) {
@@ -55,7 +65,11 @@ export class UrlService {
     }
   }
 
-  async getLongUrl(shortUrl: string, req: Request): Promise<string> {
+  async getLongUrl(
+    shortUrl: string,
+    req: Request,
+    customDomain: string,
+  ): Promise<string> {
     const cacheKey = 'longurl';
 
     const cachedResult = await this.cacheService.get(cacheKey);
@@ -64,9 +78,24 @@ export class UrlService {
       return cachedResult;
     }
 
-    const url = await this.prisma.url.findFirst({
-      where: { shortUrl, status: true },
-    });
+    let url: Url;
+
+    if (customDomain !== undefined) {
+      url = await this.prisma.url.findFirst({
+        where: {
+          shortUrl,
+          status: true,
+        },
+      });
+    } else {
+      url = await this.prisma.url.findFirst({
+        where: {
+          shortUrl,
+          status: true,
+          customDomain: { domain: customDomain },
+        },
+      });
+    }
 
     if (!url) {
       throw new ForbiddenException('Invalid URL!');

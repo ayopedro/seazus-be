@@ -14,7 +14,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtGuard } from 'src/auth/guard';
 import { UrlService } from './url.service';
 import { CreateUrlDto, EditUrlDto } from './dtos';
-import { GetUser } from 'src/auth/decorator';
+import { ApiResponseMetadata, GetUser } from 'src/auth/decorator';
 import { User } from '@prisma/client';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { QrCodeService } from './qrcode.service';
@@ -49,16 +49,19 @@ export class UrlController {
     return this.urlService.updateUrlStatus(id, status);
   }
 
+  @ApiResponseMetadata({ message: 'URL is updated successfully!!!' })
   @Patch(':id')
   editUrl(@Param('id') id: string, @Body() body: EditUrlDto) {
     return this.urlService.editUrl(id, body);
   }
 
+  @ApiResponseMetadata({ message: 'URL is deleted successfully!!!' })
   @Delete(':id')
   deleteUrl(@Param('id') id: string) {
     return this.urlService.deleteUrl(id);
   }
 
+  @ApiResponseMetadata({ message: 'QR Code is deleted successfully!!!' })
   @Delete(':id/qrcode')
   deleteQrcode(@Param('id') id: string) {
     return this.qrcodeService.deleteQrCode(id);

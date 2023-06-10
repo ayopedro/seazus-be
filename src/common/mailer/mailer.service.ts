@@ -13,7 +13,6 @@ export class MailerService {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Confirm your email address',
-      //   html: '<h1>Hello World</h1>',
       template: 'confirmEmail',
       context: {
         firstName,
@@ -24,11 +23,23 @@ export class MailerService {
     return { message: 'Confimation email sent!' };
   }
 
+  async sendEmailConfirmed({ firstName, lastName, email }: User) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Email confirmed successfully',
+      template: 'emailConfirmed',
+      context: {
+        firstName,
+        lastName,
+      },
+    });
+    return { message: 'Email confirmed successfully' };
+  }
+
   async sendResetEmail({ firstName, email }: User, token: number) {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Password Reset',
-      //   html: '<h1>Hello World</h1>',
       template: 'resetPassword',
       context: {
         firstName,

@@ -64,11 +64,26 @@ export class AuthService {
     }
   }
 
+  async newToken(id: string, type: TokenType) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    const token = await this.tokenService.createToken(
+      type,
+      user.email,
+      10 * 60 * 1000,
+    );
+
+    return this.mailerService.sendConfirmEmailMessage(user, token);
+  }
+
   async confirmEmail(id: string, { token }: ConfirmEmailDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user)
       throw new BadRequestException('Unable to verify your email address.');
+
+    if (user.verified) {
+      return { message: 'Email already verified.' };
+    }
 
     const verify = await this.tokenService.verifyToken(
       TokenType.EMAIL_VERIFICATION,
@@ -82,6 +97,7 @@ export class AuthService {
       );
 
     await this.prisma.user.update({ where: { id }, data: { verified: true } });
+    await this.mailerService.sendEmailConfirmed(user);
 
     return { message: 'Email verification successful!' };
   }

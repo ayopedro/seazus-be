@@ -892,10 +892,10 @@
   resolved "https://registry.npmjs.org/@prisma/engines-version/-/engines-version-4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c.tgz"
   integrity sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==
 
-"@prisma/engines@4.14.1":
-  version "4.14.1"
-  resolved "https://registry.npmjs.org/@prisma/engines/-/engines-4.14.1.tgz"
-  integrity sha512-APqFddPVHYmWNKqc+5J5SqrLFfOghKOLZxobmguDUacxOwdEutLsbXPVhNnpFDmuQWQFbXmrTTPoRrrF6B1MWA==
+"@prisma/engines@4.15.0":
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-4.15.0.tgz#d8687a9fda615fab88b75b466931280289de9e26"
+  integrity sha512-FTaOCGs0LL0OW68juZlGxFtYviZa4xdQj/rQEdat2txw0s3Vu/saAPKjNVXfIgUsGXmQ72HPgNr6935/P8FNAA==
 
 "@redis/bloom@1.2.0", "@redis/bloom@^1.0.2":
   version "1.2.0"
@@ -5732,12 +5732,12 @@ preview-email@3.0.5:
     pug "^3.0.2"
     uuid "^8.3.2"
 
-prisma@^4.14.1:
-  version "4.14.1"
-  resolved "https://registry.npmjs.org/prisma/-/prisma-4.14.1.tgz"
-  integrity sha512-z6hxzTMYqT9SIKlzD08dhzsLUpxjFKKsLpp5/kBDnSqiOjtUyyl/dC5tzxLcOa3jkEHQ8+RpB/fE3w8bgNP51g==
+prisma@^4.15.0:
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/prisma/-/prisma-4.15.0.tgz#4faa94f0d584828b68468953ff0bc88f37912c8c"
+  integrity sha512-iKZZpobPl48gTcSZVawLMQ3lEy6BnXwtoMj7hluoGFYu2kQ6F9LBuBrUyF95zRVnNo8/3KzLXJXJ5TEnLSJFiA==
   dependencies:
-    "@prisma/engines" "4.14.1"
+    "@prisma/engines" "4.15.0"
 
 process-nextick-args@~2.0.0:
   version "2.0.1"
