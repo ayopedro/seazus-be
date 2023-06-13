@@ -60,13 +60,13 @@ export class QrCodeService {
   }
 
   async deleteQrCode(id: string) {
-    const url = await this.prismaService.qrCode.findFirst({
+    const qrCode = await this.prismaService.qrCode.findFirst({
       where: { urlId: id },
     });
 
-    if (!url)
+    if (!qrCode)
       throw new ForbiddenException('Operation Failed. URL does not exist');
 
-    return await this.prismaService.qrCode.delete({ where: { urlId: id } });
+    return this.prismaService.qrCode.delete({ where: { urlId: id } });
   }
 }

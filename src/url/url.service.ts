@@ -178,16 +178,20 @@ export class UrlService {
 
   async deleteUrl(id: string) {
     try {
-      const url = await this.prisma.url.findUnique({ where: { id } });
+      const url = await this.prisma.url.findFirst({
+        where: { id },
+        include: { QrCode: true, clickData: true },
+      });
 
       if (!url)
         throw new ForbiddenException('Unable to delete url. URL not found!');
 
-      await this.prisma.click.deleteMany({ where: { urlId: id } });
+      if (url.clickData.length)
+        await this.prisma.click.deleteMany({ where: { urlId: id } });
+
+      if (url.QrCode) await this.prisma.qrCode.delete({ where: { urlId: id } });
 
       await this.prisma.url.delete({ where: { id } });
-
-      await this.prisma.qrCode.delete({ where: { id } });
 
       await this.cacheService.reset();
       return { message: 'Url deleted successfully' };
