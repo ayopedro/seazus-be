@@ -113,6 +113,7 @@ export class AuthService {
           ...dto,
           password: 'b5f6f398333322a992fc9a3dcd5840e5',
           googleAuth: true,
+          verified: true,
         },
       });
       user = newUser;
