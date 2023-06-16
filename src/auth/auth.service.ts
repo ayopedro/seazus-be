@@ -82,7 +82,7 @@ export class AuthService {
       throw new BadRequestException('Unable to verify your email address.');
 
     if (user.verified) {
-      return { message: 'Email already verified.' };
+      throw new BadRequestException('Email already verified.');
     }
 
     const verify = await this.tokenService.verifyToken(

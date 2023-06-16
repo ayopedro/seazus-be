@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -24,7 +25,7 @@ export class UrlService {
       });
 
       if (existingLongUrl)
-        throw new ForbiddenException(`${longUrl} already shortened`);
+        throw new BadRequestException(`${longUrl} already shortened`);
 
       let shortUrl = ShortCodeUtility.generateShortCode(6);
       let existingUrl = await this.prisma.url.findFirst({
