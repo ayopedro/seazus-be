@@ -18,16 +18,16 @@ export class TokenService {
     return token;
   }
 
-  async verifyToken(key: string, userToken: string | number, email: string) {
+  async verifyToken(key: string, userToken: string, email: string) {
     const existingToken = await this.cacheService.get(key);
     if (!existingToken) throw new BadRequestException('Invalid token');
 
     const { id, type, token } = JSON.parse(existingToken);
 
-    if (id !== email && type !== key && token !== userToken)
-      throw new BadRequestException('Invalid token');
-
-    await this.cacheService.remove(key);
-    return true;
+    if (id === email && type === key && token === parseInt(userToken)) {
+      await this.cacheService.remove(key);
+      return true;
+    }
+    throw new BadRequestException('Invalid token');
   }
 }

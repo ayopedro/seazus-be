@@ -54,7 +54,7 @@ export class AuthService {
 
       await this.mailerService.sendConfirmEmailMessage(user, token);
 
-      return user;
+      return { message: 'Registration Successful', user };
     } catch (error) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Email address already exists');
@@ -130,7 +130,8 @@ export class AuthService {
       },
     });
 
-    if (!user) throw new ForbiddenException('User not found');
+    if (!user)
+      throw new ForbiddenException('Invalid credentials. User not found');
 
     if (user.googleAuth)
       throw new ForbiddenException(
@@ -191,7 +192,7 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user) throw new BadRequestException('Email is invalid');
+    if (!user) throw new BadRequestException('Invalid Email');
 
     const token = await this.tokenService.createToken(
       TokenType.PASSWORD_RESET,
@@ -199,7 +200,8 @@ export class AuthService {
       10 * 60 * 1000,
     );
 
-    return await this.mailerService.sendResetEmail(user, token);
+    const mail = await this.mailerService.sendResetEmail(user, token);
+    return { message: mail, user };
   }
 
   async resetPassword(userId: string, token: string, newPassword: string) {
@@ -221,7 +223,7 @@ export class AuthService {
     });
 
     await this.mailerService.sendResetSuccessfulEmail(user);
-    return { Message: 'Password reset successfully!' };
+    return { message: 'Password reset successfully!' };
   }
 
   async generateAccessToken(userId: string, email: string): Promise<string> {
