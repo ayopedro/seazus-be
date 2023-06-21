@@ -95,4 +95,11 @@ export class AuthController {
   refresh(@Body() body: RefreshTokenDto) {
     return this.authService.refreshTokens(body);
   }
+
+  @Post('logout')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
+  logoutUser(@GetUser() { id }: User) {
+    return this.authService.logoutUser(id);
+  }
 }

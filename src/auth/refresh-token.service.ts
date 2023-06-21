@@ -93,4 +93,12 @@ export class RefreshTokenService {
       },
     });
   }
+
+  async deleteRefreshToken(userId: string) {
+    return await this.prisma.refreshToken.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  }
 }

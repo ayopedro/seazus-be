@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -18,52 +17,59 @@ export class UrlService {
     private cacheService: CacheService,
   ) {}
 
+  async getUrl(id: string) {
+    const url = await this.prisma.url.findUnique({
+      where: { id },
+      include: { clickData: true, customDomain: true, QrCode: true },
+    });
+    if (!url) throw new NotFoundException('URL not found!');
+
+    return url;
+  }
+
   async createUrl({ longUrl, customDomain, title }: CreateUrlDto, user: User) {
-    try {
-      const existingLongUrl = await this.prisma.url.findFirst({
-        where: { longUrl },
-      });
+    const existingLongUrl = await this.prisma.url.findFirst({
+      where: { longUrl },
+    });
 
-      if (existingLongUrl)
-        throw new BadRequestException(`${longUrl} already shortened`);
+    if (existingLongUrl) {
+      throw new ForbiddenException('URL already shortened');
+    }
 
-      let shortUrl = ShortCodeUtility.generateShortCode(6);
-      let existingUrl = await this.prisma.url.findFirst({
+    let shortUrl = ShortCodeUtility.generateShortCode(6);
+    let existingUrl = await this.prisma.url.findFirst({
+      where: { shortUrl },
+    });
+
+    while (existingUrl) {
+      shortUrl = ShortCodeUtility.generateShortCode(6);
+      existingUrl = await this.prisma.url.findFirst({
         where: { shortUrl },
       });
+    }
 
-      while (existingUrl) {
-        shortUrl = ShortCodeUtility.generateShortCode(6);
-        existingUrl = await this.prisma.url.findFirst({
-          where: { shortUrl },
-        });
-      }
+    const result = await this.prisma.url.create({
+      data: {
+        longUrl,
+        shortUrl,
+        userId: user.id,
+        title,
+      },
+    });
 
-      const result = await this.prisma.url.create({
-        data: {
-          longUrl,
-          shortUrl,
-          userId: user.id,
-          title,
-        },
+    if (customDomain) {
+      const existingDomain = await this.prisma.customDomain.findFirst({
+        where: { domain: customDomain },
       });
 
-      if (customDomain) {
-        const existingDomain = await this.prisma.customDomain.findFirst({
-          where: { domain: customDomain },
+      if (!existingDomain) {
+        await this.prisma.customDomain.create({
+          data: { domain: customDomain, url: { connect: { id: result.id } } },
         });
-
-        if (!existingDomain) {
-          await this.prisma.customDomain.create({
-            data: { domain: customDomain, url: { connect: { id: result.id } } },
-          });
-        }
       }
-
-      return result;
-    } catch (error) {
-      return { message: error.message };
     }
+
+    return { message: 'URL shortened', result };
   }
 
   async getLongUrl(

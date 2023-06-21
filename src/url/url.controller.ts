@@ -8,6 +8,7 @@ import {
   Patch,
   Delete,
   Query,
+  Get,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -23,13 +24,18 @@ import { QrCodeService } from './qrcode.service';
 @UseGuards(JwtGuard)
 @UseGuards(ThrottlerGuard)
 @ApiBearerAuth()
-@UseInterceptors(CacheInterceptor)
+// @UseInterceptors(CacheInterceptor)
 @Controller('url')
 export class UrlController {
   constructor(
     private urlService: UrlService,
     private qrcodeService: QrCodeService,
   ) {}
+
+  @Get(':id')
+  getUrl(@Param('id') id: string) {
+    return this.urlService.getUrl(id);
+  }
 
   @Post()
   createUrl(@Body() body: CreateUrlDto, @GetUser() user: User) {

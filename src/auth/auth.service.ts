@@ -82,7 +82,7 @@ export class AuthService {
       throw new BadRequestException('Unable to verify your email address.');
 
     if (user.verified) {
-      throw new BadRequestException('Email already verified.');
+      throw new BadRequestException('Email already verified!');
     }
 
     const verify = await this.tokenService.verifyToken(
@@ -262,14 +262,18 @@ export class AuthService {
       }
 
       const accessToken = await this.generateAccessToken(sub, email);
-      // const newRefreshToken = await this.generateRefreshToken(sub);
 
       return {
         accessToken,
-        // refreshToken: newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async logoutUser(userId: string) {
+    await this.refreshTokenService.deleteRefreshToken(userId);
+
+    return { message: 'Logout successful!' };
   }
 }
