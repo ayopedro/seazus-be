@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -15,12 +16,17 @@ export class QrCodeService {
     private configService: ConfigService,
   ) {}
 
-  async generateQrCode(urlId: string): Promise<Buffer> {
+  async generateQrCode(urlId: string) {
     const url = await this.prismaService.url.findFirst({
       where: { id: urlId },
     });
 
+    const existingQr = await this.prismaService.qrCode.findUnique({
+      where: { urlId: url.id },
+    });
+
     if (!url) throw new NotFoundException('URL not found!');
+    if (existingQr) throw new BadRequestException('QR Code already exists');
 
     const qrCodeOptions: QRCodeToFileOptionsPng = {
       errorCorrectionLevel: 'H',
@@ -46,7 +52,10 @@ export class QrCodeService {
       },
     });
 
-    return processedImage;
+    const imageBuffer = Buffer.from(processedImage);
+    const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+
+    return { message: 'QR code generated', imageUrl };
   }
 
   async getQrCode(id: string) {
@@ -56,7 +65,10 @@ export class QrCodeService {
 
     if (!qrCode) throw new NotFoundException(' QR Code not found');
 
-    return qrCode.image;
+    const imageBuffer = Buffer.from(qrCode.image);
+    const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+
+    return imageUrl;
   }
 
   async deleteQrCode(id: string) {
@@ -67,6 +79,8 @@ export class QrCodeService {
     if (!qrCode)
       throw new ForbiddenException('Operation Failed. URL does not exist');
 
-    return this.prismaService.qrCode.delete({ where: { urlId: id } });
+    await this.prismaService.qrCode.delete({ where: { urlId: id } });
+
+    return { message: 'QR code deleted successfully' };
   }
 }

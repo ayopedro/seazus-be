@@ -20,11 +20,19 @@ export class UrlService {
   async getUrl(id: string) {
     const url = await this.prisma.url.findUnique({
       where: { id },
-      include: { clickData: true, customDomain: true, QrCode: true },
+      include: { clickData: true, customDomain: true },
     });
+
     if (!url) throw new NotFoundException('URL not found!');
 
-    return url;
+    const qrCode = await this.prisma.qrCode.findUnique({
+      where: { urlId: url.id },
+    });
+    if (!qrCode) return { url, qrCode: null };
+    const imageBuffer = Buffer.from(qrCode.image);
+    const imageUrl = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+
+    return { url, qrCode: imageUrl };
   }
 
   async createUrl({ longUrl, customDomain, title }: CreateUrlDto, user: User) {
@@ -176,18 +184,25 @@ export class UrlService {
       const url = await this.prisma.url.findUnique({ where: { id } });
       if (!url) throw new NotFoundException('URL not found');
 
-      await this.prisma.url.update({
+      const result = await this.prisma.url.update({
         where: { id },
-        data: { status: query === 'true' ? true : false },
+        data: { status: query !== 'true' ? false : true },
       });
-    } catch (error) {}
+
+      return {
+        message: `Link ${result.status ? 'activated' : 'deactivated'}`,
+        result,
+      };
+    } catch (error) {
+      return { message: error.message };
+    }
   }
 
   async deleteUrl(id: string) {
     try {
       const url = await this.prisma.url.findFirst({
         where: { id },
-        include: { QrCode: true, clickData: true },
+        include: { QrCode: true, clickData: true, customDomain: true },
       });
 
       if (!url)
@@ -197,6 +212,9 @@ export class UrlService {
         await this.prisma.click.deleteMany({ where: { urlId: id } });
 
       if (url.QrCode) await this.prisma.qrCode.delete({ where: { urlId: id } });
+
+      if (url.customDomain)
+        await this.prisma.customDomain.delete({ where: { urlId: id } });
 
       await this.prisma.url.delete({ where: { id } });
 

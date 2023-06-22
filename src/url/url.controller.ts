@@ -3,7 +3,6 @@ import {
   UseGuards,
   Post,
   Body,
-  UseInterceptors,
   Param,
   Patch,
   Delete,
@@ -17,14 +16,12 @@ import { UrlService } from './url.service';
 import { CreateUrlDto, EditUrlDto } from './dtos';
 import { ApiResponseMetadata, GetUser } from 'src/auth/decorator';
 import { User } from '@prisma/client';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import { QrCodeService } from './qrcode.service';
 
 @ApiTags('URL')
 @UseGuards(JwtGuard)
 @UseGuards(ThrottlerGuard)
 @ApiBearerAuth()
-// @UseInterceptors(CacheInterceptor)
 @Controller('url')
 export class UrlController {
   constructor(
