@@ -7,12 +7,19 @@ import * as requestIp from 'request-ip';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const allowedOrigins = [
+    /^(https:\/\/([^\.]*\.)?ngrok\.io)$/i,
+    'https://localhost:3000',
+    'http://localhost:3000',
+    'https://localhost:5173',
+    'http://localhost:5173',
+    'https://seazus.onrender.com',
+  ];
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://seazus.vercel.app',
-    ],
+    origin: allowedOrigins,
+    credentials: true,
   });
 
   app.useGlobalPipes(

@@ -72,7 +72,8 @@ export class AuthService {
       10 * 60 * 1000,
     );
 
-    return this.mailerService.sendConfirmEmailMessage(user, token);
+    await this.mailerService.sendConfirmEmailMessage(user, token);
+    return { message: 'One Time Password resent' };
   }
 
   async confirmEmail(id: string, { token }: ConfirmEmailDto) {
@@ -176,7 +177,8 @@ export class AuthService {
 
     const matchedPW = await argon.verify(user.password, currentPassword);
 
-    if (!matchedPW) throw new ForbiddenException('Incorrect Password');
+    if (!matchedPW)
+      throw new ForbiddenException('Current Password is Incorrect');
 
     const hash = await argon.hash(newPassword);
 
