@@ -15,6 +15,7 @@ async function bootstrap() {
     'https://localhost:5173',
     'http://localhost:5173',
     'https://seazus.onrender.com',
+    'https://seazus.vercel.app',
   ];
 
   app.enableCors({
