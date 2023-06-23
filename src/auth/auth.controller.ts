@@ -91,6 +91,12 @@ export class AuthController {
     return this.authService.googleLogin(req);
   }
 
+  @Post('google-auth')
+  // @UseGuards(GoogleGuard)
+  googleSignupOrLogin(@Body() { access_token }: { access_token: string }) {
+    return this.authService.googleClientAuth(access_token);
+  }
+
   @Post('refresh-token')
   refresh(@Body() body: RefreshTokenDto) {
     return this.authService.refreshTokens(body);

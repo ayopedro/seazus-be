@@ -21,6 +21,7 @@ import { MailerService } from 'src/common/mailer/mailer.service';
 import { TokenService } from 'src/common/token/token.service';
 import { TokenType } from 'src/common/token/enums';
 import { ConfirmEmailDto } from './dtos/confirm-email.dto';
+import { GoogleStrategy } from './strategies';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
+    private googleStrategy: GoogleStrategy,
     private refreshTokenService: RefreshTokenService,
     private mailerService: MailerService,
     private tokenService: TokenService,
@@ -162,6 +164,21 @@ export class AuthService {
     const refreshToken = await this.generateRefreshToken(user.id);
 
     return { user, accessToken, refreshToken };
+  }
+
+  async googleClientAuth(access_token: string) {
+    try {
+      const googleUser = await this.googleStrategy.clientValidate(access_token);
+
+      const user = await this.findOrCreate(googleUser);
+
+      const accessToken = await this.generateAccessToken(user.id, user.email);
+      const refreshToken = await this.generateRefreshToken(user.id);
+
+      return { user, accessToken, refreshToken };
+    } catch (error) {
+      throw new UnauthorizedException('Google Authentication Failed');
+    }
   }
 
   async changePassword(
