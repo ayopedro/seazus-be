@@ -7,7 +7,7 @@ export class AppController {
   constructor(private urlService: UrlService) {}
   @Get()
   getHello(): string {
-    return 'Hello World';
+    return 'Welcome to SEAZUS. Shorten your long URLs on https://seazus.vercel.app';
   }
 
   @Get(':shortUrl')

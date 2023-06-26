@@ -37,7 +37,7 @@ export class UrlService {
 
   async createUrl({ longUrl, customDomain, title }: CreateUrlDto, user: User) {
     const existingLongUrl = await this.prisma.url.findFirst({
-      where: { longUrl },
+      where: { longUrl, userId: user.id },
     });
 
     if (existingLongUrl) {
@@ -206,7 +206,7 @@ export class UrlService {
       });
 
       if (!url)
-        throw new ForbiddenException('Unable to delete url. URL not found!');
+        throw new ForbiddenException('Unable to delete URL. URL not found!');
 
       if (url.clickData.length)
         await this.prisma.click.deleteMany({ where: { urlId: id } });
@@ -219,7 +219,7 @@ export class UrlService {
       await this.prisma.url.delete({ where: { id } });
 
       await this.cacheService.reset();
-      return { message: 'Url deleted successfully' };
+      return { message: 'URL deleted successfully' };
     } catch (error) {
       throw new ForbiddenException(error.message);
     }
