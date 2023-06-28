@@ -17,6 +17,7 @@ async function bootstrap() {
     'https://seazus.onrender.com',
     'https://seazus.vercel.app',
     'https://scissor-cut.vercel.app',
+    'https://scissors-ten.vercel.app',
   ];
 
   app.enableCors({
