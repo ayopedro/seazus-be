@@ -60,7 +60,7 @@ export class UrlService {
       data: {
         longUrl,
         shortUrl,
-        userId: user.id,
+        user: { connect: { id: user.id } },
         title,
       },
     });
@@ -155,8 +155,8 @@ export class UrlService {
 
     await this.prisma.click.create({
       data: {
-        urlId,
         ...clickDto,
+        url: { connect: { id: urlId } },
       },
     });
   }
