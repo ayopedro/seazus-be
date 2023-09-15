@@ -13,7 +13,7 @@ export class MailerService {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Confirm your email address',
-      template: 'confirmEmail',
+      template: './confirmEmail',
       context: {
         firstName,
         lastName,
@@ -27,7 +27,7 @@ export class MailerService {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Email confirmed successfully',
-      template: 'emailConfirmed',
+      template: './emailConfirmed',
       context: {
         firstName,
         lastName,
@@ -40,7 +40,7 @@ export class MailerService {
     await this.mailerService.sendMail({
       to: email,
       subject: 'Password Reset',
-      template: 'resetPassword',
+      template: './resetPassword',
       context: {
         firstName,
         token,
